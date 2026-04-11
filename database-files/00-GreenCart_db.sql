@@ -27,7 +27,8 @@ FoodId INT AUTO_INCREMENT PRIMARY KEY,
 CatId INT NOT NULL,
 Name VARCHAR(50) NOT NULL,
 UnitPrice DECIMAL(10,2),
-Category VARCHAR(100)
+Category VARCHAR(100),
+FOREIGN KEY (CategoryId) REFERENCES Category(CategoryId)
 );
 -- PANTRY
 CREATE TABLE Pantry (
@@ -74,9 +75,7 @@ WastedFoodId INT AUTO_INCREMENT PRIMARY KEY,
 FoodId INT,
 Amount INT,
 DateThrownOut datetime,
-CategoryId INT,
-FOREIGN KEY (FoodId) REFERENCES FoodGlobal(FoodId),
-FOREIGN KEY (CategoryId) REFERENCES Category(CategoryId)
+FOREIGN KEY (FoodId) REFERENCES FoodGlobal(FoodId)
 );
 -- EMPLOYEE
 CREATE TABLE Employee (
