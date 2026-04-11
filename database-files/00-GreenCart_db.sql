@@ -45,7 +45,8 @@ Price DECIMAL(10,2) NOT NULL,
 Amount INT,
 WasBought BOOLEAN NOT NULL,
 FOREIGN KEY (ItemId) REFERENCES FoodGlobal(FoodId),
-FOREIGN KEY (GroceryListId) REFERENCES GroceryList(ListId),
+FOREIGN KEY (GroceryListId) REFERENCES GroceryList(ListId)
+ON DELETE CASCADE,
 PRIMARY KEY (GroceryItemId, GroceryListId)
 );
 -- PANTRY ITEM
@@ -56,6 +57,8 @@ StorageLocation VARCHAR(100),
 FoodId INT NOT NULL,
 DateBought datetime,
 ExpirationDate datetime,
+FOREIGN KEY (PantryId) REFERENCES Pantry(PantryId)
+ON DELETE CASCADE,
 FOREIGN KEY (FoodId) REFERENCES FoodGlobal(FoodId),
 PRIMARY KEY (PantryItemId, PantryId)
 );
