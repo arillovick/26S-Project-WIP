@@ -72,9 +72,11 @@ WasteTip text NOT NULL
 -- WASTED FOOD
 CREATE TABLE WastedFood (
 WastedFoodId INT AUTO_INCREMENT PRIMARY KEY,
+UserId INT,
 FoodId INT,
 Amount INT,
 DateThrownOut datetime,
+FOREIGN KEY (UserId) REFERENCES User(UserId),
 FOREIGN KEY (FoodId) REFERENCES FoodGlobal(FoodId)
 );
 -- EMPLOYEE
