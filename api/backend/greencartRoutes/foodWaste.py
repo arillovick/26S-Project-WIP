@@ -19,8 +19,8 @@ def get_user_food_waste(user_id):
         before = request.args.get("before")
         after = request.args.get("after")
 
-        query = "SELECT * FROM WorldNGOs WHERE 1=1"
-        params = []
+        query = "SELECT * FROM WastedFood WHERE UserId = %s"
+        params = [user_id]
 
         if before:
             query += " AND DateThrownOut < %s"
@@ -30,7 +30,6 @@ def get_user_food_waste(user_id):
             params.append(after)
 
         cursor.execute(query, params)
-        cursor.execute("SELECT * FROM WastedFood WHERE UserId = %s", (user_id),)
         foodWaste_list = cursor.fetchall()
 
         current_app.logger.info(f'Retrieved {len(foodWaste_list)} wasted fooditems for user_id {user_id}')
