@@ -21,14 +21,12 @@ Store VARCHAR(60),
 Actual_total DECIMAL NOT NULL,
 FOREIGN KEY (OwnerId) REFERENCES User(UserId)
 );
-
 -- CATEGORY
 CREATE TABLE Category (
 CategoryId INT AUTO_INCREMENT PRIMARY KEY,
 Name varchar(50) NOT NULL,
 WasteTip text NOT NULL
 );
-
 -- FOOD GLOBAL
 CREATE TABLE FoodGlobal (
 FoodId INT AUTO_INCREMENT PRIMARY KEY,
@@ -71,7 +69,6 @@ ON DELETE CASCADE,
 FOREIGN KEY (FoodId) REFERENCES FoodGlobal(FoodId),
 PRIMARY KEY (PantryItemId, PantryId)
 );
-
 -- WASTED FOOD
 CREATE TABLE WastedFood (
 WastedFoodId INT AUTO_INCREMENT PRIMARY KEY,
@@ -92,7 +89,7 @@ Position varchar(100)
 -- AUDIT LOG
 CREATE TABLE AuditLog (
 LogId INT AUTO_INCREMENT PRIMARY KEY,
-UserId INT UNIQUE NOT NULL,
+UserId INT NOT NULL,
 ChangeName text NOT NULL,
 Datetime datetime,
 Description text,
