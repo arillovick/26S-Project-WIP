@@ -33,7 +33,7 @@ FoodId INT AUTO_INCREMENT PRIMARY KEY,
 CatId INT NOT NULL,
 Name VARCHAR(50) NOT NULL,
 UnitPrice DECIMAL(10,2),
-Category VARCHAR(100),
+CategoryId INT,
 FOREIGN KEY (CategoryId) REFERENCES Category(CategoryId)
 );
 -- PANTRY
