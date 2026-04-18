@@ -5,7 +5,7 @@ from mysql.connector import Error
 pantry_items = Blueprint("pantry_items", __name__)
 
 # route 1: add a new pantry item anytime after a shopping list [Bob-4]
-@pantry_items.route("/pantryItem", methods=["POST"])
+@pantry_items.route("/", methods=["POST"])
 def add_pantry_item():
     cursor = get_db().cursor(dictionary=True)
     try:
@@ -23,7 +23,7 @@ def add_pantry_item():
         cursor.close()
 
 # route 2: update an item's storage location and/or expiration date [Bob-2,3]
-@pantry_items.route("/pantryItem/<int:pantryItemId>", methods=["PUT"])
+@pantry_items.route("/<int:pantryItemId>", methods=["PUT"])
 def update_pantry_item(pantryItemId):
     cursor = get_db().cursor(dictionary=True)
     try:
@@ -42,7 +42,7 @@ def update_pantry_item(pantryItemId):
         cursor.close()
 
 # route 3: remove pantry item once used or thrown out [Bob-3]
-@pantry_items.route("/pantryItem/<int:pantryItemId>", methods=["DELETE"])
+@pantry_items.route("/<int:pantryItemId>", methods=["DELETE"])
 def delete_pantry_item(pantryItemId):
     cursor = get_db().cursor(dictionary=True)
     try:

@@ -8,7 +8,7 @@ foodWaste = Blueprint("foodWaste", __name__)
 
 # Get all food wasted by a specific user with optional filtering by time span
 # Example: http://localhost:4000/foodWaste/1
-@foodWaste.route("/foodWaste/<int:user_id>", methods=["GET"])
+@foodWaste.route("/<int:user_id>", methods=["GET"])
 def get_user_food_waste(user_id):
     cursor = get_db().cursor(dictionary=True)
     try:

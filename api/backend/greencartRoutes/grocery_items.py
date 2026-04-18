@@ -5,7 +5,7 @@ from mysql.connector import Error
 grocery_items = Blueprint("grocery_items", __name__)
 
 # route 8: remove specific item from a grocery list [Bob-1]
-@grocery_items.route("/groceryItem/<int:itemId>", methods=["DELETE"])
+@grocery_items.route("/<int:itemId>", methods=["DELETE"])
 def delete_grocery_item(itemId):
     cursor = get_db().cursor(dictionary=True)
     try:
