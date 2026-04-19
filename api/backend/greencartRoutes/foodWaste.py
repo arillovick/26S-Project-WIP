@@ -62,7 +62,7 @@ def get_foodWaste_cost(user_id):
     finally:
         cursor.close()
 
-# Returns all food waste data from every user [Vector-1, 4]
+# Returns all food waste data with optional category and cost filter [Vector-1, 3, 4]
 @foodWaste.route("/foodWaste", methods=["GET"])
 def get_wasted_food():
     cursor = get_db().cursor(dictionary=True)
@@ -70,21 +70,21 @@ def get_wasted_food():
         current_app.logger.info('GET /foodWaste')
         category = request.args.get('category')
         cost = request.args.get('cost')
-        query = '''SELECT fg.Name, wf.Amount, wf.DateThrownOut, 
-            c.Name AS Category,
-            fg.UnitPrice * wf.Amount AS TotalCost
+        query = '''SELECT fg.Name, wf.Amount, wf.DateThrownOut, c.Name AS Category
             FROM WastedFood wf
             JOIN FoodGlobal fg ON wf.FoodId = fg.FoodId
-            JOIN Category c ON fg.CatId = c.CategoryId'''
+            JOIN Category c ON fg.CatId = c.CategoryId
+            WHERE 1=1'''
+        params = []
         if category:
-            query += ' WHERE c.Name = %s'
-            cursor.execute(query, (category,))
-        else:
-            cursor.execute(query)
+            query += " AND c.Name = %s"
+            params.append(category)
+        if cost:
+            query += " AND fg.UnitPrice * wf.Amount = %s"
+            params.append(cost)
+        cursor.execute(query, params)
         wasted_food = cursor.fetchall()
-        if not cost:
-            for item in wasted_food:
-                del item['TotalCost']
+        current_app.logger.info(f'Retrieved {len(wasted_food)} wasted food records')
         return jsonify(wasted_food), 200
     except Error as e:
         current_app.logger.error(f'Database error in get_wasted_food: {e}')
