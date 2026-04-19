@@ -40,3 +40,55 @@ def get_user_food_waste(user_id):
     finally:
         cursor.close()
 
+# Returns the cost of food wasted per user [Vector- 2]
+@foodWaste.route("/foodWaste/<int:userId>/cost", methods=["GET"])
+def get_foodWaste_cost(user_id):
+    cursor = get_db().cursor(dictionary=True)
+    try:
+        current_app.logger.info(f'GET /foodWaste/{user_id}/cost')
+        query = '''SELECT u.UserId, u.FirstName, u.LastName,
+            SUM(wf.Amount * fg.UnitPrice) AS TotalCostWasted
+            FROM WastedFood wf
+            JOIN User u ON wf.UserId = u.UserId
+            JOIN FoodGlobal fg ON wf.FoodId = fg.FoodId
+            WHERE wf.UserId = %s
+            GROUP BY u.UserId, u.FirstName, u.LastName'''
+        cursor.execute(query, (user_id,))
+        cost_data = cursor.fetchall()
+        return jsonify(cost_data), 200
+    except Error as e:
+        current_app.logger.error(f'Database error in get_foodWaste_cost: {e}')
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+
+# Returns all food waste data with optional category and cost filter [Vector-1, 3, 4]
+@foodWaste.route("/foodWaste", methods=["GET"])
+def get_wasted_food():
+    cursor = get_db().cursor(dictionary=True)
+    try:
+        current_app.logger.info('GET /foodWaste')
+        category = request.args.get('category')
+        cost = request.args.get('cost')
+        query = '''SELECT fg.Name, wf.Amount, wf.DateThrownOut, c.Name AS Category
+            FROM WastedFood wf
+            JOIN FoodGlobal fg ON wf.FoodId = fg.FoodId
+            JOIN Category c ON fg.CatId = c.CategoryId
+            WHERE 1=1'''
+        params = []
+        if category:
+            query += " AND c.Name = %s"
+            params.append(category)
+        if cost:
+            query += " AND fg.UnitPrice * wf.Amount = %s"
+            params.append(cost)
+        cursor.execute(query, params)
+        wasted_food = cursor.fetchall()
+        current_app.logger.info(f'Retrieved {len(wasted_food)} wasted food records')
+        return jsonify(wasted_food), 200
+    except Error as e:
+        current_app.logger.error(f'Database error in get_wasted_food: {e}')
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+
