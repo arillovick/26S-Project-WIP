@@ -62,3 +62,52 @@ def update_grocery_item(userId):
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
+
+#route 4: returns account state, inventory, notification preferences, and recent activity [Janice-4, Vector-6]
+@users.route("/<int:userId>/activity", methods=["GET"])
+def get_user_activity(userId):
+    cursor = get_db().cursor(dictionary=True)
+    try:
+        current_app.logger.info(f"GET /users/{userId}/activity")
+        #GET user account info and notification pref
+        cursor.execute("""
+            SELECT UserId, FirstName, LastName, Email, FamilySize, PaymentMethod, Notifications
+            FROM User
+            WHERE UserId = %s
+        """, (userId,))
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        #GET their current pantry inventory
+        cursor.execute("""
+            SELECT pi.PantryItemId, fg.Name AS FoodName, pi.StorageLocation, pi.ExpirationDate, pi.DateBought
+            FROM PantryItem pi
+            JOIN FoodGlobal fg ON pi.FoodId = fg.FoodId
+            JOIN Pantry p ON pi.PantryId = p.PantryId
+            WHERE p.UserId = %s
+        """, (userId,))
+        inventory = cursor.fetchall()
+
+        #GET their recent wasted food activity
+        cursor.execute("""
+            SELECT wf.WastedFoodId, fg.Name AS FoodName, wf.DateThrownOut, wf.Amount
+            FROM WastedFood wf
+            JOIN FoodGlobal fg ON wf.FoodId = fg.FoodId
+            WHERE wf.UserId = %s
+            ORDER BY wf.DateThrownOut DESC
+            LIMIT 10
+        """, (userId,))
+        recent_waste = cursor.fetchall()
+
+        return jsonify({
+            "user": user,
+            "inventory": inventory,
+            "recent_waste": recent_waste
+        }), 200
+    except Error as e:
+        current_app.logger.error(f"Database error in get_user_activity: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
