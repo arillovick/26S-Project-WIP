@@ -40,7 +40,7 @@ def get_user_food_waste(user_id):
     finally:
         cursor.close()
 
-# Returns the cost of food wasted per user [Vector-2]
+# Returns the cost of food wasted per user [Vector- 2]
 @foodWaste.route("/foodWaste/<int:userId>/cost", methods=["GET"])
 def get_foodWaste_cost(user_id):
     cursor = get_db().cursor(dictionary=True)
