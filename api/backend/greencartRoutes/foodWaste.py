@@ -67,13 +67,24 @@ def get_foodWaste_cost(user_id):
 def get_wasted_food():
     cursor = get_db().cursor(dictionary=True)
     try:
-        current_app.logger.info('GET /wastedFood')
-        query = '''SELECT fg.Name, wf.Amount, wf.DateThrownOut, c.Name AS Category
+        current_app.logger.info('GET /foodWaste')
+        category = request.args.get('category')
+        cost = request.args.get('cost')
+        query = '''SELECT fg.Name, wf.Amount, wf.DateThrownOut, 
+            c.Name AS Category,
+            fg.UnitPrice * wf.Amount AS TotalCost
             FROM WastedFood wf
             JOIN FoodGlobal fg ON wf.FoodId = fg.FoodId
             JOIN Category c ON fg.CatId = c.CategoryId'''
-        cursor.execute(query)
+        if category:
+            query += ' WHERE c.Name = %s'
+            cursor.execute(query, (category,))
+        else:
+            cursor.execute(query)
         wasted_food = cursor.fetchall()
+        if not cost:
+            for item in wasted_food:
+                del item['TotalCost']
         return jsonify(wasted_food), 200
     except Error as e:
         current_app.logger.error(f'Database error in get_wasted_food: {e}')
