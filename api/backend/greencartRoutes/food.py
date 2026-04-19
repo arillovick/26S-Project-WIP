@@ -8,7 +8,7 @@ food = Blueprint("food", __name__)
 
 # Get a specific food item by its ID with optional filtering by category
 # Example: http://localhost:4000/food/1
-@food.route("/food/<int:food_id>", methods=["GET"])
+@food.route("/<int:food_id>", methods=["GET"])
 def get_food(food_id):
     cursor = None
     try:
