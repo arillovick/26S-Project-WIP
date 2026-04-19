@@ -42,7 +42,7 @@ def update_pantry_item(pantryItemId):
         cursor.close()
 
 # route 3: remove pantry item once used or thrown out [Bob-3]
-@pantry_items.route("/pantryItem/<int:pantryItemId>", methods=["DELETE"])
+@pantry_items.route("/<int:pantryItemId>", methods=["DELETE"])
 def delete_pantry_item(pantryItemId):
     cursor = get_db().cursor(dictionary=True)
     try:

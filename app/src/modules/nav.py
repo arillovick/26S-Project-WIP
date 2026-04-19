@@ -76,6 +76,15 @@ def ml_model_mgmt_nav():
         "pages/21_ML_Model_Mgmt.py", label="ML Model Management", icon="🏢"
     )
 
+# Bob/Household Manager role and functions
+def bob_pantry_nav():
+    st.sidebar.page_link("pages/40_Bob_Pantry.py", label="My Pantry", icon="🍎")
+
+def bob_add_pantry_nav():
+    st.sidebar.page_link("pages/41_Bob_Add_Pantry.py", label="Add Pantry Item", icon="🛒")
+
+def bob_spending_nav():
+    st.sidebar.page_link("pages/42_Bob_Spending.py", label="Spending by Category", icon="💰")
 
 # ---- Sidebar assembly -------------------------------------------------------
 
@@ -114,6 +123,11 @@ def SideBarLinks(show_home=False):
         if st.session_state["role"] == "administrator":
             admin_home_nav()
             ml_model_mgmt_nav()
+
+        if st.session_state["role"] == "household_manager":
+            bob_pantry_nav()
+            bob_add_pantry_nav()
+            bob_spending_nav()
 
     # About link appears at the bottom for all roles
     about_page_nav()

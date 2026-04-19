@@ -7,10 +7,10 @@ from backend.db_connection import init_app as init_db
 from backend.simple.simple_routes import simple_routes
 from backend.ngos.ngo_routes import ngos
 from backend.greencartRoutes.grocery_items import grocery_items
-from backend.greencartRoutes/grocery_list import grocery_list
-from backend.greencartRoutes/pantry import pantry
-from backend.greencartRoutes/pantry_items import pantry_items
-from backend.greencartRoutes/users import users
+from backend.greencartRoutes.grocery_list import grocery_list
+from backend.greencartRoutes.pantry import pantry
+from backend.greencartRoutes.pantry_items import pantry_items
+from backend.greencartRoutes.users import users
 from backend.greencartRoutes.foodWaste import foodWaste
 
 def create_app():

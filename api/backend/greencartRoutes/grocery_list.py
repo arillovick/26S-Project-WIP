@@ -5,7 +5,7 @@ from mysql.connector import Error
 grocery_list = Blueprint("grocery_list", __name__)
 
 # route 1: returns spending vs. budgeting info by category [Bob-5]
-@grocery_list.route("/groceryList/<int:userId>/categorySpend", methods=["GET"])
+@grocery_list.route("/<int:userId>/categorySpend", methods=["GET"])
 def get_budget_info(userId):
     cursor = get_db().cursor(dictionary=True)
     try: 
