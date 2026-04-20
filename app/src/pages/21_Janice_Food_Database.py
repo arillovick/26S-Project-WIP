@@ -14,7 +14,7 @@ st.write("### Manage food items in the global database.")
 st.subheader("All food items in global")
 
 try:
-    response = requests.get(f"http://api:4000/foodGlobal/")  # ✅
+    response = requests.get(f"http://api:4000/foodGlobal/")  
     if response.status_code == 200:
         logs = response.json()
         if logs:
