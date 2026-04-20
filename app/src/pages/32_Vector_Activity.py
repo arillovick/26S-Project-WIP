@@ -13,6 +13,8 @@ API_URL = "http://web-api:4000/foodWaste"
 
 st.title("Food Waste by Date")
 st.write("View food waste trends over time.")
+
+time_filter = st.selectbox("Group by", ["Day", "Month"])
 try:
     response = requests.get(API_URL)
     if response.status_code == 200:
@@ -20,13 +22,18 @@ try:
         if data:
             df = pd.DataFrame(data)
             df["DateThrownOut"] = pd.to_datetime(df["DateThrownOut"])
+
+            if time_filter == "Month":
+                df["DateThrownOut"] = df["DateThrownOut"].dt.to_period("M").dt.to_timestamp()
+
             df = df.groupby("DateThrownOut")["Amount"].sum().reset_index()
             df = df.sort_values("DateThrownOut")
-            st.subheader("Total Waste Over Time")
+            st.subheader(f"Total Waste Over Time (by {time_filter})")
             st.line_chart(df.set_index("DateThrownOut")["Amount"],
                          use_container_width=True,
-                         y_label="Amount Wasted",
+                         y_label="Amount Wasted (unit: per item)",
                          x_label="Date")
+
             st.subheader("Raw Data")
             st.dataframe(df, use_container_width=True)
         else:
