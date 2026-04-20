@@ -15,7 +15,7 @@ def get_budget_info(userId):
             FROM GroceryItem gi
             JOIN GroceryList gl ON gi.GroceryListId = gl.ListId
             JOIN FoodGlobal fg ON gi.ItemId = fg.FoodId
-            JOIN Category c ON fg.CatId = c.CategoryId
+            JOIN Category c ON fg.CategoryId = c.CategoryId
             WHERE gl.OwnerId = %s
             GROUP BY c.Name
             ORDER BY ActualSpent DESC'''

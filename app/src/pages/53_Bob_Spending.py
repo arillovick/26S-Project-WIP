@@ -11,7 +11,7 @@ st.title("See Spending by Category")
 st.write("### View your actual spending vs. budget by food category.")
 
 user_id = 1
-API_URL = f"http://api:4000/groceryList/{user_id}/CategorySpend"
+API_URL = f"http://api:4000/groceryList/{user_id}/categorySpend"
 
 try:
     response = requests.get(API_URL)
