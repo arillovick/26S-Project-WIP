@@ -26,11 +26,12 @@ if st.button("Add Pantry Item", type='primary'):
                 "StorageLocation": storage_location,
                 "DateBought": str(date_bought),
                 "ExpirationDate": str(expiration_date)
-            }
+            })
+        
         if response.status_code == 201:
             st.success("Pantry item added!")
         else:
             st.error(f"Error: {response.json().get('error', 'Unknown error')}")
 
     except requests.exceptions.RequestException as e:
-    st.error(f"Error connecting to the API: {str(e)}")
+        st.error(f"Error connecting to the API: {str(e)}")
