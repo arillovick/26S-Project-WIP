@@ -15,7 +15,7 @@ st.write('### What would you like to do today?')
 if st.button('Go to Shopping List',
              type='primary',
              use_container_width=True):
-    st.switch_page('pages/01_Ashe_ShoppingList.py')
+    st.switch_page('pages/01_Ashe_GroceryList.py')
 
 if st.button('View Notifications', type='primary', use_container_width=True):
     st.switch_page('pages/02_Ashe_Notifications.py')

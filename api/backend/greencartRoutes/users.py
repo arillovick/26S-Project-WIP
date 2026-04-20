@@ -5,21 +5,39 @@ from mysql.connector import Error
 users = Blueprint("users", __name__)
 
 
-# Route 1: return all grocery lists for a user [Ashe-2,4,6; Bob-1,6]
+# Route 1: return all grocery lists with their items for a user [Ashe-2,4,6; Bob-1,6]
 @users.route("/<int:userId>/groceryList", methods=["GET"])
 def get_grocery_list(userId):
     cursor = None
     try:
         cursor = get_db().cursor(dictionary=True)
         current_app.logger.info(f"GET /users/{userId}/groceryList")
-        query = '''SELECT gl.ListId, gl.Store, gl.Est_total, gl.Actual_total, gl.Budget,
+
+        # First get all grocery lists for this user
+        list_query = '''SELECT gl.ListId, gl.Store, gl.Est_total, gl.Actual_total, gl.Budget,
             ROUND(gl.Actual_total - gl.Est_total, 2) AS Difference
             FROM GroceryList gl
             WHERE gl.OwnerId = %s
             ORDER BY gl.ListId ASC'''
-        cursor.execute(query, (userId,))
-        groceryList = cursor.fetchall()
-        return jsonify(groceryList), 200
+        cursor.execute(list_query, (userId,))
+        grocery_lists = cursor.fetchall()
+
+        if not grocery_lists:
+            return jsonify([]), 200
+
+        # For each list, fetch its items and nest them in
+        item_query = '''SELECT gi.GroceryItemId, fg.Name, gi.Amount,
+            gi.PriceAtTime, gi.Bought
+            FROM GroceryItem gi
+            JOIN FoodGlobal fg ON gi.FoodId = fg.FoodId
+            WHERE gi.ListId = %s'''
+
+        for grocery_list in grocery_lists:
+            cursor.execute(item_query, (grocery_list['ListId'],))
+            grocery_list['items'] = cursor.fetchall()
+
+        return jsonify(grocery_lists), 200
+
     except Error as e:
         current_app.logger.error(f'Database error in get_grocery_list: {e}')
         return jsonify({"error": str(e)}), 500
