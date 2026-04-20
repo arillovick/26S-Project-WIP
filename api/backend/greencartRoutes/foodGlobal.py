@@ -9,7 +9,7 @@ foodGlobal = Blueprint("foodGlobal", __name__)
 # GET all details for a specific food item in FoodGlobal
 #ex:http://localhost:4000/foodGlobal/1
 #Janice-1
-@foodGlobal.route("/foodGlobal/<int:food_id>", methods=["GET"])
+@foodGlobal.route("/<int:food_id>", methods=["GET"])
 def get_food_global(food_id):
     cursor = None
     try:
@@ -18,10 +18,10 @@ def get_food_global(food_id):
 
         cursor.execute("""
             SELECT fg.FoodId, fg.Name, fg.UnitPrice,
-                   fg.DefaultSealedShelfLife, fg.DefaultOpenedShelfLife,
+                   fg.DefaultSealedShelfLife, fg.DefaultOpenShelfLife,
                    c.CategoryId, c.Name AS Category, c.WasteTip
             FROM FoodGlobal fg
-            JOIN Category c ON fg.CatId = c.CatId
+            JOIN Category c ON fg.CategoryId = c.CategoryId
             WHERE fg.FoodId = %s
         """, (food_id,))
 
@@ -43,7 +43,7 @@ def get_food_global(food_id):
 # POST: ADD a new food item to FoodGlobal (also logs to AuditLog)
 #ex: http://localhost:4000/foodGlobal
 #Janice-1
-@foodGlobal.route("/foodGlobal", methods=["POST"])
+@foodGlobal.route("/", methods=["POST"])
 def add_food_global():
     cursor = None
     try:
@@ -54,15 +54,15 @@ def add_food_global():
         data = request.get_json()
         name = data.get("Name")
         unit_price = data.get("UnitPrice")
-        cat_id = data.get("CatId")
+        cat_id = data.get("CategoryId")
         default_sealed = data.get("DefaultSealedShelfLife")
-        default_opened = data.get("DefaultOpenedShelfLife")
+        default_opened = data.get("DefaultOpenShelfLife")
 
         if not all([name, unit_price, cat_id]):
-            return jsonify({"error": "Missing required fields: Name, UnitPrice, CatId"}), 400
+            return jsonify({"error": "Missing required fields: Name, UnitPrice, CategoryId"}), 400
 
         cursor.execute("""
-            INSERT INTO FoodGlobal (Name, UnitPrice, CatId, DefaultSealedShelfLife, DefaultOpenedShelfLife)
+            INSERT INTO FoodGlobal (Name, UnitPrice, CategoryId, DefaultSealedShelfLife, DefaultOpenShelfLife)
             VALUES (%s, %s, %s, %s, %s)
         """, (name, unit_price, cat_id, default_sealed, default_opened))
 
@@ -70,12 +70,12 @@ def add_food_global():
 
         #log to auditLog
         cursor.execute("""
-            INSERT INTO AuditLog (title, description, Datetime, change_name)
+            INSERT INTO AuditLog (UserId, ChangeName, Datetime, Description)
             VALUES (%s, %s, NOW(), %s)
         """, (
-            "Food Item Added",
-            f"New food item '{name}' (FoodId: {new_food_id}) added to FoodGlobal.",
-            name
+            1,
+            name,
+            f"New food item '{name}' (FoodId: {new_food_id}) added to FoodGlobal."
         ))
 
         db_conn.commit()
@@ -89,10 +89,36 @@ def add_food_global():
             cursor.close()
 
 
+
+@foodGlobal.route("/", methods=["GET"])
+def get_all_food_global():
+    cursor = None
+    try:
+        cursor = get_db().cursor(dictionary=True)
+        current_app.logger.info('GET /foodGlobal')
+
+        cursor.execute("""
+            SELECT fg.FoodId, fg.Name, fg.UnitPrice,
+                   fg.DefaultSealedShelfLife, fg.DefaultOpenShelfLife,
+                   c.CategoryId, c.Name AS Category, c.WasteTip
+            FROM FoodGlobal fg
+            JOIN Category c ON fg.CategoryId = c.CategoryId
+        """)
+
+        foods = cursor.fetchall()
+        current_app.logger.info(f'Retrieved {len(foods)} food items')
+        return jsonify(foods), 200
+    except Error as e:
+        current_app.logger.error(f'Database error in get_all_food_global: {e}')
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+
 #PUT:Update a food item in FoodGlobal(also add a log to AuditLog)
 #ex:http://localhost:4000/foodGlobal/1
 #Janice-2
-@foodGlobal.route("/foodGlobal/<int:food_id>", methods=["PUT"])
+@foodGlobal.route("/<int:food_id>", methods=["PUT"])
 def update_food_global(food_id):
     cursor = None
     try:
@@ -103,17 +129,17 @@ def update_food_global(food_id):
         data = request.get_json()
         name = data.get("Name")
         unit_price = data.get("UnitPrice")
-        cat_id = data.get("CatId")
+        cat_id = data.get("CategoryId")
         default_sealed = data.get("DefaultSealedShelfLife")
-        default_opened = data.get("DefaultOpenedShelfLife")
+        default_opened = data.get("DefaultOpenShelfLife")
 
         cursor.execute("""
             UPDATE FoodGlobal
             SET Name = COALESCE(%s, Name),
                 UnitPrice = COALESCE(%s, UnitPrice),
-                CatId = COALESCE(%s, CatId),
+                CategoryId = COALESCE(%s, CategoryId),
                 DefaultSealedShelfLife = COALESCE(%s, DefaultSealedShelfLife),
-                DefaultOpenedShelfLife = COALESCE(%s, DefaultOpenedShelfLife)
+                DefaultOpenShelfLife = COALESCE(%s, DefaultOpenShelfLife)
             WHERE FoodId = %s
         """, (name, unit_price, cat_id, default_sealed, default_opened, food_id))
 
@@ -122,12 +148,12 @@ def update_food_global(food_id):
 
         #log in auditLog
         cursor.execute("""
-            INSERT INTO AuditLog (title, description, Datetime, change_name)
+            INSERT INTO AuditLog (UserId, ChangeName, Datetime, Description)
             VALUES (%s, %s, NOW(), %s)
         """, (
-            "Food Item Updated",
-            f"FoodGlobal item FoodId {food_id} was updated.",
-            name or f"FoodId {food_id}"
+            1,  # hardcode an EmpId for now since Janice is the engineer
+            name or f"FoodId {food_id}",
+            f"FoodGlobal item FoodId {food_id} was updated."
         ))
 
         db_conn.commit()
@@ -144,13 +170,13 @@ def update_food_global(food_id):
 #DELETE a food item from FoodGlobal(also logs to AuditLog)
 #example: http://localhost:4000/foodGlobal/1 where 1 is the id of the food item 
 #janice-2
-@foodGlobal.route("/foodGlobal/<int:food_id>", methods=["DELETE"])
+@foodGlobal.route("/<int:food_id>", methods=["DELETE"])
 def delete_food_global(food_id):
     cursor = None
     try:
         db_conn = get_db()
         cursor = db_conn.cursor(dictionary=True)
-        current_app.logger.info(f'DELETE /foodGlobal/{food_id}')
+        current_app.logger.info(f'DELETE /{food_id}')
 
         cursor.execute("SELECT Name FROM FoodGlobal WHERE FoodId = %s", (food_id,))
         food_item = cursor.fetchone()
@@ -162,12 +188,12 @@ def delete_food_global(food_id):
 
         #auditLog
         cursor.execute("""
-            INSERT INTO AuditLog (title, description, Datetime, change_name)
+            INSERT INTO AuditLog (UserId, ChangeName, Datetime, Description)
             VALUES (%s, %s, NOW(), %s)
         """, (
-            "Food Item Deleted",
-            f"FoodGlobal item '{food_item['Name']}' (FoodId: {food_id}) was deleted.",
-            food_item["Name"]
+            1,
+            food_item["Name"],
+            f"FoodGlobal item '{food_item['Name']}' (FoodId: {food_id}) was deleted."
         ))
 
         db_conn.commit()

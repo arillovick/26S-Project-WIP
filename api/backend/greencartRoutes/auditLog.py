@@ -9,7 +9,7 @@ auditLog = Blueprint("auditLog", __name__)
 #GET all timestamped audit log entries
 # Example:http://localhost:4000/auditLog
 #janice-3
-@auditLog.route("/auditLog", methods=["GET"])
+@auditLog.route("/", methods=["GET"])
 def get_all_audit_logs():
     cursor = None
     try:
@@ -17,7 +17,7 @@ def get_all_audit_logs():
         current_app.logger.info('GET /auditLog')
 
         cursor.execute("""
-            SELECT id, title, description, Datetime, change_name
+            SELECT LogId, UserId, ChangeName, Datetime, Description
             FROM AuditLog
             ORDER BY Datetime DESC
         """)
@@ -36,7 +36,7 @@ def get_all_audit_logs():
 # GET a specific audit log entry by ID
 # Example: http://localhost:4000/auditLog/1
 # janice-3
-@auditLog.route("/auditLog/<int:log_id>", methods=["GET"])
+@auditLog.route("/<int:log_id>", methods=["GET"])
 def get_audit_log(log_id):
     cursor = None
     try:
@@ -44,9 +44,9 @@ def get_audit_log(log_id):
         current_app.logger.info(f'GET /auditLog/{log_id}')
 
         cursor.execute("""
-            SELECT id, title, description, Datetime, change_name
+            SELECT LogId, UserId, ChangeName, Datetime, Description
             FROM AuditLog
-            WHERE id = %s
+            WHERE LogId = %s
         """, (log_id,))
 
         log = cursor.fetchone()

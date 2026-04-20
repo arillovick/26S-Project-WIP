@@ -55,6 +55,6 @@ def create_app():
     app.register_blueprint(foodWaste, url_prefix="/foodWaste")
     app.register_blueprint(food, url_prefix="/food")
     app.register_blueprint(foodGlobal, url_prefix="/foodGlobal")
-    app.register_blueprint(auditLog, url_prefix="/auditlog")
+    app.register_blueprint(auditLog, url_prefix="/auditLog")
 
     return app
