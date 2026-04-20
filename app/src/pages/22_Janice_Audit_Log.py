@@ -1,28 +1,50 @@
 import logging
 logger = logging.getLogger(__name__)
-
 import streamlit as st
-from modules.nav import SideBarLinks
 import requests
+from modules.nav import SideBarLinks
 
 st.set_page_config(layout='wide')
-
 SideBarLinks()
 
-st.title('App Administration Page')
+st.title("Audit Log")
+st.write("### View all changes made to the FoodGlobal database.")
 
-st.write('## Model 1 Maintenance')
+BASE_URL = "http://api:4000"
 
-if st.button("Train Model 01", type='primary', use_container_width=True):
-    # TODO: wire this to a POST /train route on the API that triggers retraining
-    st.info("Training route not yet implemented.")
+#******************************
+st.subheader("All Audit Log Entries")
 
-if st.button('Test Model 01', type='primary', use_container_width=True):
-    # TODO: wire this to a GET /test route on the API
-    st.info("Testing route not yet implemented.")
+try:
+    response = requests.get(f"{BASE_URL}/auditLog/")
+    if response.status_code == 200:
+        logs = response.json()
+        if logs:
+            st.dataframe(logs, use_container_width=True)
+        else:
+            st.info("No audit log entries found.")
+    else:
+        st.error(f"Error fetching audit log: {response.json().get('error', 'Unknown error')}")
+except requests.exceptions.RequestException as e:
+    st.error(f"Error connecting to the API: {str(e)}")
 
-if st.button('Model 1 - get predicted value for 10, 25',
-             type='primary',
-             use_container_width=True):
-    results = requests.get('http://web-api:4000/prediction/10/25').json()
-    st.dataframe(results)
+st.divider()
+
+#***************************
+st.subheader("Look Up a Specific Audit Log Entry")
+
+log_id = st.number_input("Audit Log ID", min_value=1, step=1)
+
+if st.button("Search", type="primary"):
+    try:
+        r = requests.get(f"{BASE_URL}/auditLog/{int(log_id)}")
+        if r.status_code == 200:
+            log = r.json()
+            st.success("Entry found.")
+            st.json(log)
+        elif r.status_code == 404:
+            st.warning("No audit log entry found with that ID.")
+        else:
+            st.error(f"Error: {r.json().get('error', 'Unknown error')}")
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error connecting to the API: {str(e)}")
