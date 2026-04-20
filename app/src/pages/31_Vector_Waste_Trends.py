@@ -9,7 +9,6 @@ st.set_page_config(layout='wide')
 
 SideBarLinks()
 API_URL = "http://web-api:4000/foodWaste"
-
 st.title("Food Waste by Category")
 st.write("View Total Food Waste by Category")
 category = st.selectbox("Filter by Category", ["All", "Produce", "Meat", "Dairy", "Frozen", 
