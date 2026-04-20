@@ -19,7 +19,7 @@ def get_food_global(food_id):
         cursor.execute("""
             SELECT fg.FoodId, fg.Name, fg.UnitPrice,
                    fg.DefaultSealedShelfLife, fg.DefaultOpenedShelfLife,
-                   c.CatId, c.Name AS Category, c.WasteTip
+                   c.CategoryId, c.Name AS Category, c.WasteTip
             FROM FoodGlobal fg
             JOIN Category c ON fg.CatId = c.CatId
             WHERE fg.FoodId = %s
