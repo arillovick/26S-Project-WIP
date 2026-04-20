@@ -40,7 +40,6 @@ if st.button("Update Location", type='primary'):
         )
         if response.status_code == 200:
             st.success("Storage location updated.")
-            st.rerun()
         else:
             st.error(f"Error: {response.json().get('error', 'Unknown error')}")
     except requests.exceptions.RequestException as e:
