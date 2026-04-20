@@ -90,7 +90,7 @@ def get_wasted_food():
             ROUND(fg.UnitPrice * wf.Amount, 2) AS LineCost
             FROM WastedFood wf
             JOIN FoodGlobal fg ON wf.FoodId = fg.FoodId
-            JOIN Category c ON fg.CatId = c.CategoryId
+            JOIN Category c ON fg.CategoryId = c.CategoryId
             WHERE 1=1'''
         params = []
 

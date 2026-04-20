@@ -2,14 +2,16 @@ import logging
 logger = logging.getLogger(__name__)
 import streamlit as st
 import requests
+import pandas as pd
 from modules.nav import SideBarLinks
 
 st.set_page_config(layout='wide')
 
-# Food waste dashboard track food waste across chosen categories
 SideBarLinks()
 API_URL = "http://web-api:4000/foodWaste"
-st.title("Food Waste Overview")
+
+st.title("Food Waste by Category")
+st.write("View Total Food Waste by Category")
 category = st.selectbox("Filter by Category", ["All", "Produce", "Meat", "Dairy", "Frozen", 
                                                "Seafood", "Beverages", "Condiments", "Grains"])
 params = {}
@@ -20,16 +22,12 @@ try:
     if response.status_code == 200:
         data = response.json()
         if data:
-            st.subheader(f"Showing {len(data)} wasted food")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("**Food Item**")
-                for item in data:
-                    st.write(item["Name"])
-            with col2:
-                st.write("**Amount Wasted**")
-                for item in data:
-                    st.write(item["Amount"])
+            st.subheader(f"Showing {len(data)} wasted food items")
+            df = pd.DataFrame(data)
+            df = df.rename(columns={"Name": "Food Item", "Amount": "Amount Wasted"})
+            df = df.set_index("Food Item")
+            st.bar_chart(df["Amount Wasted"])
+            st.dataframe(df, use_container_width=True)
         else:
             st.info("No food waste records found")
     else:
@@ -40,5 +38,3 @@ except requests.exceptions.RequestException as e:
 
 if st.button("Return Home"):
     st.switch_page("pages/30_Nonprofit_Coordinator_Home.py")
-
-
