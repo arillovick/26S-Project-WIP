@@ -49,7 +49,7 @@ except requests.exceptions.RequestException as e:
 #  User activity for "used" count
 inventory = []
 try:
-    r_activity = requests.get(f"{BASE_URL}/user/{user_id}/activity")
+    r_activity = requests.get(f"{BASE_URL}/users/{user_id}/activity")
     if r_activity.status_code == 200:
         inventory = r_activity.json().get("inventory", [])
 except requests.exceptions.RequestException:
