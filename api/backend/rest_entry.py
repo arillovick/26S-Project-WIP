@@ -13,6 +13,10 @@ from backend.greencartRoutes.pantry_items import pantry_items
 from backend.greencartRoutes.users import users
 from backend.greencartRoutes.foodWaste import foodWaste
 from backend.greencartRoutes.food import food
+from backend.greencartRoutes.foodGlobal import foodGlobal
+from backend.greencartRoutes.auditLog import auditLog
+
+
 
 def create_app():
     app = Flask(__name__)
@@ -49,6 +53,8 @@ def create_app():
     app.register_blueprint(grocery_list, url_prefix="/groceryList")
     app.register_blueprint(grocery_items, url_prefix="/groceryItem")
     app.register_blueprint(foodWaste, url_prefix="/foodWaste")
-    app.register_blueprint(food, url_prefix="/=food")
+    app.register_blueprint(food, url_prefix="/food")
+    app.register_blueprint(foodGlobal, url_prefix="/foodGlobal")
+    app.register_blueprint(auditLog, url_prefix="/auditlog")
 
     return app
