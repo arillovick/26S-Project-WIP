@@ -27,3 +27,12 @@ try:
          st.error(f"Error fetching spending data: {response.json().get('error', 'Unknown error')}")
 except requests.exceptions.RequestException as e:
     st.error(f"Error connecting to the API: {str(e)}")
+
+if spending:
+     import pandas as pd
+     import plotly.express as px
+
+     df = pd.DataFrame(spending)
+     df['ActualSpent'] = df['ActualSpent'].astype(float)
+     fig = px.pie(df, values='ActualSpent', names='CategoryName', title='Spending by Food Category')
+     st.plotly_chart(fig)
