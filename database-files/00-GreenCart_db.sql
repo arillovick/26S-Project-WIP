@@ -30,10 +30,12 @@ WasteTip text NOT NULL
 -- FOOD GLOBAL
 CREATE TABLE FoodGlobal (
 FoodId INT AUTO_INCREMENT PRIMARY KEY,
-CatId INT NOT NULL,
+CategoryId INT NOT NULL,
 Name VARCHAR(50) NOT NULL,
 UnitPrice DECIMAL(10,2),
-CategoryId INT,
+Category VARCHAR(100),
+DefaultSealedShelfLife INT,
+DefaultOpenShelfLife INT,
 FOREIGN KEY (CategoryId) REFERENCES Category(CategoryId)
 );
 -- PANTRY
