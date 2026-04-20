@@ -17,7 +17,7 @@ def get_pantry_items(pantryId):
         query = '''SELECT fg.Name, pi.StorageLocation, pi.ExpirationDate
                    FROM PantryItem pi
                    JOIN FoodGlobal fg ON pi.FoodId = fg.FoodId
-                   WHERE pi.PantryId = %s AND pi.IsActive = 1'''
+                   WHERE pi.PantryId = %s'''
         params = [pantryId]
 
         if days is not None:
