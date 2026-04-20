@@ -8,7 +8,7 @@ st.set_page_config(layout='wide')
 
 # Food waste dashboard track food waste across chosen categories
 SideBarLinks()
-API_URL = "http://localhost:4000/foodWaste"
+API_URL = "http://web-api:4000/foodWaste"
 st.title("Food Waste Overview")
 category = st.selectbox("Filter by Category", ["All", "Produce", "Meat", "Dairy", "Frozen", 
                                                "Seafood", "Beverages", "Condiments", "Grains"])
