@@ -49,6 +49,6 @@ def create_app():
     app.register_blueprint(grocery_list, url_prefix="/groceryList")
     app.register_blueprint(grocery_items, url_prefix="/groceryItem")
     app.register_blueprint(foodWaste, url_prefix="/foodWaste")
-    app.register_blueprint(food, url_prefix="/=food")
+    app.register_blueprint(food, url_prefix="/food")
 
     return app
