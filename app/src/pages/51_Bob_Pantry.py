@@ -35,11 +35,12 @@ new_location = st.text_input("New Storage Location")
 if st.button("Update Location", type='primary'):
     try:
         response = requests.put(
-            f'http://web-api:4000/pantry/{pantry_id}',
+            f'http://api:4000/pantryItem/{pantry_item_id}',
             json={"StorageLocation": new_location}
         )
         if response.status_code == 200:
             st.success("Storage location updated.")
+            st.rerun()
         else:
             st.error(f"Error: {response.json().get('error', 'Unknown error')}")
     except requests.exceptions.RequestException as e:
@@ -50,12 +51,10 @@ if st.button("Update Location", type='primary'):
     delete_item_id = st.number_input("Pantry Item ID to Remove", min_value=1, step=1)
     if st.button("Delete Item", type='primary'):
         try:
-            response = requests.delete(f'http://web-api:4000/pantryItem/{delete_item_id}')
+            response = requests.delete(f'http://api:4000/pantryItem/{delete_item_id}')
             if response.status_code == 200:
                 st.success("Pantry item deleted.")
             else:
                 st.error(f"Error: {response.json().get('error', 'Unknown error')}")
         except requests.exceptions.RequestException as e:
             st.error(f"Error connecting to the API: {str(e)}")
-
-    st.write("Could not connect to database to get pantry.")
