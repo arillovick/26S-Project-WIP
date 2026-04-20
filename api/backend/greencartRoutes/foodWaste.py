@@ -73,7 +73,7 @@ def get_wasted_food():
         query = '''SELECT fg.Name, wf.Amount, wf.DateThrownOut, c.Name AS Category
             FROM WastedFood wf
             JOIN FoodGlobal fg ON wf.FoodId = fg.FoodId
-            JOIN Category c ON fg.CatId = c.CategoryId
+            JOIN Category c ON fg.CategoryId = c.CategoryId
             WHERE 1=1'''
         params = []
         if category:
