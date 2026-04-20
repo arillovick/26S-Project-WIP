@@ -22,31 +22,43 @@ def api_get(path):
         st.error(f"Error connecting to the API: {str(e)}")
         return None
 
+def to_float(val, default=0.0):
+    """Safely cast API values to float — handles strings, None, and missing keys."""
+    try:
+        return float(val) if val is not None else default
+    except (TypeError, ValueError):
+        return default
+
 
 # ── VIEW GROCERY LISTS WITH ITEMS ─────────────────────────────────────────────
 st.subheader("Your Grocery Lists")
 response = api_get(f"/users/{userid}/groceryList")
-
+logger.info("Retrieving grocery list")
 grocery_lists = []
 if response and response.status_code == 200:
     grocery_lists = response.json()
     if grocery_lists:
-        for gl in grocery_lists:
-            items        = gl.get("items", [])
-            bought_count = sum(1 for i in items if i.get("Bought"))
-            total_items  = len(items)
-            label = (
-                f"List {gl['ListId']} — {gl.get('Store', '—')}  |  "
-                f"Budget: ${gl.get('Budget', 0.0):.2f}  |  "
-                f"Est: ${gl.get('Est_total', 0.0):.2f}  |  "
-                f"Actual: ${gl.get('Actual_total', 0.0):.2f}  |  "
-                f"{bought_count}/{total_items} items bought"
-            )
-            with st.expander(label):
-                if items:
-                    st.dataframe(items, use_container_width=True)
-                else:
-                    st.info("No items in this list yet.")
+        gl = grocery_lists[0]
+        items        = gl.get("items", [])
+        bought_count = sum(1 for i in items if i.get("Bought"))
+        total_items  = len(items)
+
+        budget = to_float(gl.get("Budget"))
+        est    = to_float(gl.get("Est_total"))
+        actual = to_float(gl.get("Actual_total"))
+
+        label = (
+            f"List {gl['ListId']} — {gl.get('Store', '—')}  |  "
+            f"Budget: ${budget:.2f}  |  "
+            f"Est: ${est:.2f}  |  "
+            f"Actual: ${actual:.2f}  |  "
+            f"{bought_count}/{total_items} items bought"
+        )
+        with st.expander(label):
+            if items:
+                st.dataframe(items, use_container_width=True)
+            else:
+                st.info("No items in this list yet.")
     else:
         st.info("You don't have any grocery lists yet.")
 elif response:
@@ -222,15 +234,16 @@ item_rows = []
 if grocery_lists:
     for gl in grocery_lists:
         list_id     = gl.get("ListId")
-        list_budget = gl.get("Budget", 0.0)
-        actual      = gl.get("Actual_total", 0.0)
-        est         = gl.get("Est_total", 0.0)
+        list_budget = to_float(gl.get("Budget"))
+        actual      = to_float(gl.get("Actual_total"))
+        est         = to_float(gl.get("Est_total"))
+        difference  = to_float(gl.get("Difference"))
         items       = gl.get("items", [])
 
         # Use item-level prices where available for a more accurate total
         if items:
             item_total = sum(
-                (i.get("Amount", 0) * i.get("PriceAtTime", 0.0))
+                to_float(i.get("Amount")) * to_float(i.get("PriceAtTime"))
                 for i in items
             )
         else:
@@ -247,7 +260,7 @@ if grocery_lists:
             "Actual":      f"${actual:.2f}",
             "Items Total": f"${item_total:.2f}",
             "List Budget": f"${list_budget:.2f}",
-            "Difference":  f"${gl.get('Difference', 0.0):.2f}",
+            "Difference":  f"${difference:.2f}",
         })
 
 if item_rows:

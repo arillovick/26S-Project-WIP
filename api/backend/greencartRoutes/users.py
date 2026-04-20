@@ -13,24 +13,23 @@ def get_grocery_list(userId):
         cursor = get_db().cursor(dictionary=True)
         current_app.logger.info(f"GET /users/{userId}/groceryList")
 
-        # First get all grocery lists for this user
         list_query = '''SELECT gl.ListId, gl.Store, gl.Est_total, gl.Actual_total, gl.Budget,
             ROUND(gl.Actual_total - gl.Est_total, 2) AS Difference
             FROM GroceryList gl
             WHERE gl.OwnerId = %s
             ORDER BY gl.ListId ASC'''
         cursor.execute(list_query, (userId,))
-        grocery_lists = cursor.fetchall()
+        grocery_lists = list(cursor.fetchall())
 
         if not grocery_lists:
             return jsonify([]), 200
 
-        # For each list, fetch its items and nest them in
+        # Schema column names: GroceryListId, ItemId, Price, WasBought
         item_query = '''SELECT gi.GroceryItemId, fg.Name, gi.Amount,
-            gi.PriceAtTime, gi.Bought
+            gi.Price AS PriceAtTime, gi.WasBought AS Bought
             FROM GroceryItem gi
-            JOIN FoodGlobal fg ON gi.FoodId = fg.FoodId
-            WHERE gi.ListId = %s'''
+            JOIN FoodGlobal fg ON gi.ItemId = fg.FoodId
+            WHERE gi.GroceryListId = %s'''
 
         for grocery_list in grocery_lists:
             cursor.execute(item_query, (grocery_list['ListId'],))
@@ -60,8 +59,7 @@ def create_grocery_list(userId):
         if missing:
             return jsonify({"error": f"Missing fields: {missing}"}), 400
 
-        query = '''
-            INSERT INTO GroceryList (OwnerId, Est_total, Budget, Store, Actual_total)
+        query = '''INSERT INTO GroceryList (OwnerId, Est_total, Budget, Store, Actual_total)
             VALUES (%s, %s, %s, %s, %s)'''
         cursor.execute(query, (
             userId,
@@ -72,6 +70,7 @@ def create_grocery_list(userId):
         ))
         get_db().commit()
         return jsonify({"message": "Grocery list created."}), 201
+
     except Error as e:
         current_app.logger.error(f"Database error in create_grocery_list: {e}")
         return jsonify({"error": str(e)}), 500
@@ -81,9 +80,8 @@ def create_grocery_list(userId):
 
 
 # Route 3: update a specific grocery list [Ashe-2; Bob-6]
-# Fixed: added listId to route and query, added Actual_total to update
 @users.route("/<int:userId>/groceryList/<int:listId>", methods=["PUT"])
-def update_grocery_item(userId, listId):
+def update_grocery_list(userId, listId):
     cursor = None
     try:
         cursor = get_db().cursor(dictionary=True)
@@ -107,16 +105,21 @@ def update_grocery_item(userId, listId):
             listId
         ))
         get_db().commit()
+
+        if cursor.rowcount == 0:
+            return jsonify({"error": f"List {listId} not found for user {userId}"}), 404
+
         return jsonify({"message": "Grocery list updated."}), 200
+
     except Error as e:
-        current_app.logger.error(f"Database error in update_grocery_item: {e}")
+        current_app.logger.error(f"Database error in update_grocery_list: {e}")
         return jsonify({"error": str(e)}), 500
     finally:
         if cursor:
             cursor.close()
 
 
-# Route 4: return account state, inventory, notifications, and recent activity [Janice-4, Vector-6]
+# Route 4: return account info, inventory, and recent waste activity [Janice-4, Vector-6]
 @users.route("/<int:userId>/activity", methods=["GET"])
 def get_user_activity(userId):
     cursor = None
@@ -134,12 +137,14 @@ def get_user_activity(userId):
         if not user:
             return jsonify({"error": "User not found"}), 404
 
+        # Schema: Pantry uses OwnerId not UserId; PantryItem has no StorageLocation
         cursor.execute("""
-            SELECT pi.PantryItemId, fg.Name AS FoodName, pi.StorageLocation, pi.ExpirationDate, pi.DateBought
+            SELECT pi.PantryItemId, fg.Name AS FoodName,
+                   pi.ExpirationDate, pi.DateBought
             FROM PantryItem pi
             JOIN FoodGlobal fg ON pi.FoodId = fg.FoodId
             JOIN Pantry p ON pi.PantryId = p.PantryId
-            WHERE p.UserId = %s
+            WHERE p.OwnerId = %s
         """, (userId,))
         inventory = cursor.fetchall()
 
@@ -158,6 +163,7 @@ def get_user_activity(userId):
             "inventory": inventory,
             "recent_waste": recent_waste
         }), 200
+
     except Error as e:
         current_app.logger.error(f"Database error in get_user_activity: {e}")
         return jsonify({"error": str(e)}), 500
@@ -167,19 +173,20 @@ def get_user_activity(userId):
 
 
 # Route 5: return all users who paid with a specific payment method [Vector-5]
-# Fixed: removed duplicate /users/ prefix, matched parameter name in signature
 @users.route("/paymentMethod/<string:paymentMethod>", methods=["GET"])
 def get_users_payment_method(paymentMethod):
     cursor = None
     try:
-        current_app.logger.info(f'GET /users/paymentMethod/{paymentMethod}')
         cursor = get_db().cursor(dictionary=True)
+        current_app.logger.info(f'GET /users/paymentMethod/{paymentMethod}')
+
         query = '''SELECT u.UserId, u.FirstName, u.LastName, u.PaymentMethod
             FROM User u
             WHERE u.PaymentMethod = %s'''
         cursor.execute(query, (paymentMethod,))
         result = cursor.fetchall()
         return jsonify(result), 200
+
     except Error as e:
         current_app.logger.error(f'Database error in get_users_payment_method: {e}')
         return jsonify({"error": str(e)}), 500

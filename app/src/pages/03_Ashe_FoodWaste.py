@@ -149,7 +149,7 @@ st.subheader("Waste cost summary")
 
 if cost_data:
     name       = f"{cost_data.get('FirstName', '')} {cost_data.get('LastName', '')}".strip()
-    total_cost = cost_data.get("TotalCostWasted", 0.0)
+    total_cost = float(cost_data.get("TotalCostWasted", 0.0))
     st.metric(
         label=f"Estimated value of food wasted by {name or f'user {user_id}'}",
         value=f"${total_cost:.2f}",
@@ -158,6 +158,8 @@ if cost_data:
     if waste_records:
         df_cost = pd.DataFrame(waste_records)
         if "LineCost" in df_cost.columns and "Category" in df_cost.columns:
+            df_cost["LineCost"] = pd.to_numeric(df_cost["LineCost"], errors="coerce").fillna(0.0)
+
             df_cost_by_cat = (
                 df_cost.groupby("Category")["LineCost"]
                 .sum()
