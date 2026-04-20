@@ -119,7 +119,7 @@ def update_grocery_list(userId, listId):
             cursor.close()
 
 
-# Route 4: return account info, inventory, and recent waste activity [Janice-4, Vector-6]
+# Route 4: return account info, inventory, and recent waste activity [Janice-4, Vector-2, 6]
 @users.route("/<int:userId>/activity", methods=["GET"])
 def get_user_activity(userId):
     cursor = None
