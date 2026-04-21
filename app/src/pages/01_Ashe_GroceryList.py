@@ -23,7 +23,6 @@ def api_get(path):
         return None
 
 def to_float(val, default=0.0):
-    """Safely cast API values to float — handles strings, None, and missing keys."""
     try:
         return float(val) if val is not None else default
     except (TypeError, ValueError):
@@ -34,31 +33,32 @@ def to_float(val, default=0.0):
 st.subheader("Your Grocery Lists")
 response = api_get(f"/users/{userid}/groceryList")
 logger.info("Retrieving grocery list")
+
 grocery_lists = []
 if response and response.status_code == 200:
     grocery_lists = response.json()
     if grocery_lists:
-        gl = grocery_lists[0]
-        items        = gl.get("items", [])
-        bought_count = sum(1 for i in items if i.get("Bought"))
-        total_items  = len(items)
+        for gl in grocery_lists:
+            items        = gl.get("items", [])
+            bought_count = sum(1 for i in items if i.get("Bought"))
+            total_items  = len(items)
 
-        budget = to_float(gl.get("Budget"))
-        est    = to_float(gl.get("Est_total"))
-        actual = to_float(gl.get("Actual_total"))
+            budget = to_float(gl.get("Budget"))
+            est    = to_float(gl.get("Est_total"))
+            actual = to_float(gl.get("Actual_total"))
 
-        label = (
-            f"List {gl['ListId']} — {gl.get('Store', '—')}  |  "
-            f"Budget: ${budget:.2f}  |  "
-            f"Est: ${est:.2f}  |  "
-            f"Actual: ${actual:.2f}  |  "
-            f"{bought_count}/{total_items} items bought"
-        )
-        with st.expander(label):
-            if items:
-                st.dataframe(items, use_container_width=True)
-            else:
-                st.info("No items in this list yet.")
+            label = (
+                f"List {gl['ListId']} — {gl.get('Store', '—')}  |  "
+                f"Budget: ${budget:.2f}  |  "
+                f"Est: ${est:.2f}  |  "
+                f"Actual: ${actual:.2f}  |  "
+                f"{bought_count}/{total_items} items bought"
+            )
+            with st.expander(label):
+                if items:
+                    st.dataframe(items, use_container_width=True)
+                else:
+                    st.info("No items in this list yet.")
     else:
         st.info("You don't have any grocery lists yet.")
 elif response:
@@ -107,78 +107,145 @@ if st.button("Create List", type="primary"):
 
 st.divider()
 
-# ── UPDATE LIST ───────────────────────────────────────────────────────────────
+# ── UPDATE LIST AND ITEMS ─────────────────────────────────────────────────────
 st.subheader("Update a Grocery List")
 
-col_a, col_b, col_c, col_d, col_e = st.columns(5)
-with col_a:
-    update_list_id = st.number_input("List ID", min_value=1, step=1, key="update_list_id")
-with col_b:
-    update_store = st.text_input("Store Name", key="update_store")
-with col_c:
-    update_est = st.number_input("Estimated Total ($)", min_value=0.0, step=0.01, format="%.2f", key="update_est")
-with col_d:
-    update_actual = st.number_input("Actual Total ($)", min_value=0.0, step=0.01, format="%.2f", key="update_actual")
-with col_e:
-    update_budget = st.number_input("Budget ($)", min_value=0.0, step=0.01, format="%.2f", key="update_budget")
+if not grocery_lists:
+    st.info("No grocery lists to update.")
+else:
+    # Let user pick which list to edit from their existing lists
+    list_options = {f"List {gl['ListId']} — {gl.get('Store', '—')}": gl for gl in grocery_lists}
+    selected_label = st.selectbox("Select a list to update", options=list_options.keys())
+    selected_list = list_options[selected_label]
 
-if st.button("Update List", type="primary"):
-    if not update_store.strip():
-        st.warning("Please enter a store name.")
+    st.write("#### List details")
+    col_a, col_b, col_c, col_d = st.columns(4)
+    with col_a:
+        update_store = st.text_input("Store Name", value=selected_list.get("Store", ""), key="update_store")
+    with col_b:
+        update_est = st.number_input("Estimated Total ($)", min_value=0.0, step=0.01, format="%.2f",
+                                     value=to_float(selected_list.get("Est_total")), key="update_est")
+    with col_c:
+        update_actual = st.number_input("Actual Total ($)", min_value=0.0, step=0.01, format="%.2f",
+                                        value=to_float(selected_list.get("Actual_total")), key="update_actual")
+    with col_d:
+        update_budget = st.number_input("Budget ($)", min_value=0.0, step=0.01, format="%.2f",
+                                        value=to_float(selected_list.get("Budget")), key="update_budget")
+
+    # Build editable item rows from the nested items
+    items = selected_list.get("items", [])
+    updated_items = []
+
+    if items:
+        st.write("#### Items")
+        st.caption("Edit quantity, price, and bought status for each item.")
+
+        for i, item in enumerate(items):
+            col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+            with col1:
+                st.text(item.get("Name", "—"))
+            with col2:
+                qty = st.number_input("Qty", min_value=0, step=1,
+                                      value=int(item.get("Amount") or 0),
+                                      key=f"qty_{item['GroceryItemId']}")
+            with col3:
+                price = st.number_input("Price ($)", min_value=0.0, step=0.01, format="%.2f",
+                                        value=to_float(item.get("PriceAtTime")),
+                                        key=f"price_{item['GroceryItemId']}")
+            with col4:
+                bought = st.checkbox("Bought", value=bool(item.get("Bought")),
+                                     key=f"bought_{item['GroceryItemId']}")
+
+            updated_items.append({
+                "GroceryItemId": item["GroceryItemId"],
+                "Amount": qty,
+                "Price": price,
+                "WasBought": bought,
+            })
     else:
-        try:
-            r = requests.put(
-                f"{BASE_URL}/users/{userid}/groceryList/{int(update_list_id)}",
-                json={
-                    "Store": update_store,
-                    "Est_total": update_est,
-                    "Actual_total": update_actual,
-                    "Budget": update_budget
-                },
-            )
-            if r.status_code == 200:
-                st.success("Grocery list updated.")
-                st.rerun()
-            else:
-                try:
-                    st.error(f"Error: {r.json().get('error', 'Unknown error')}")
-                except Exception:
-                    st.error(f"Error: {r.text or 'Unknown error'}")
-        except requests.exceptions.RequestException as e:
-            st.error(f"Error connecting to the API: {str(e)}")
+        st.info("No items in this list yet.")
+
+    if st.button("Save Changes", type="primary"):
+        if not update_store.strip():
+            st.warning("Please enter a store name.")
+        else:
+            try:
+                r = requests.put(
+                    f"{BASE_URL}/users/{userid}/groceryList/{selected_list['ListId']}",
+                    json={
+                        "Store": update_store,
+                        "Est_total": update_est,
+                        "Actual_total": update_actual,
+                        "Budget": update_budget,
+                        "items": updated_items,
+                    },
+                )
+                if r.status_code == 200:
+                    result = r.json()
+                    st.success("List updated successfully.")
+                    if result.get("items_skipped"):
+                        st.warning(f"Some items could not be updated: {result['items_skipped']}")
+                    st.rerun()
+                else:
+                    try:
+                        st.error(f"Error: {r.json().get('error', 'Unknown error')}")
+                    except Exception:
+                        st.error(f"Error: {r.text or 'Unknown error'}")
+            except requests.exceptions.RequestException as e:
+                st.error(f"Error connecting to the API: {str(e)}")
 
 st.divider()
 
 # ── ADD ITEM TO LIST ──────────────────────────────────────────────────────────
 st.subheader("Add Item to a List")
 
+# Fetch available food items for the dropdown
+food_options = {}
+try:
+    r_food = requests.get(f"{BASE_URL}/foodGlobal/")
+    if r_food.status_code == 200:
+        food_list = r_food.json()
+        food_options = {f["Name"]: f for f in food_list}
+    else:
+        st.warning("Could not load food items.")
+except requests.exceptions.RequestException:
+    st.warning("Could not connect to API to load food items.")
+
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     target_list_id = st.number_input("List ID", min_value=1, step=1, key="add_list_id")
 with col2:
-    item_name = st.text_input("Item Name")
+    selected_food = st.selectbox("Item", options=list(food_options.keys()), key="add_item_name")
 with col3:
     item_qty = st.number_input("Quantity", min_value=1, step=1, value=1)
 with col4:
-    item_price = st.number_input("Price per unit ($)", min_value=0.0, step=0.01, format="%.2f")
+    # Pre-fill price from FoodGlobal if available
+    default_price = to_float(food_options[selected_food].get("UnitPrice")) if selected_food and food_options else 0.0
+    item_price = st.number_input("Price per unit ($)", min_value=0.0, step=0.01,
+                                  format="%.2f", value=default_price)
 
 if st.button("Add Item", type="primary"):
-    if not item_name.strip():
-        st.warning("Please enter an item name.")
+    if not selected_food:
+        st.warning("Please select an item.")
+    elif target_list_id not in [gl.get("ListId") for gl in grocery_lists]:
+        st.warning(f"List {int(target_list_id)} does not exist.")
     else:
         try:
             r = requests.post(
-                f"{BASE_URL}/users/{userid}/groceryList/{int(target_list_id)}/items",
+                f"{BASE_URL}/groceryItem/",
                 json={
-                    "name": item_name,
-                    "amount": item_qty,
-                    "priceAtTime": item_price,
-                    "bought": False,
+                    "GroceryListId": int(target_list_id),
+                    "Name": selected_food,
+                    "Amount": item_qty,
+                    "Price": item_price,
+                    "WasBought": False,
                 },
             )
             if r.status_code == 201:
-                st.success(f"Added '{item_name}' to list {int(target_list_id)}.")
+                st.success(f"Added '{selected_food}' to list {int(target_list_id)}.")
                 st.rerun()
+            elif r.status_code == 404:
+                st.error(f"'{selected_food}' was not found in the database.")
             else:
                 try:
                     st.error(f"Error: {r.json().get('error', 'Unknown error')}")
@@ -201,7 +268,7 @@ with col_b:
 if st.button("Remove Item", type="primary"):
     try:
         r = requests.delete(
-            f"{BASE_URL}/users/{userid}/groceryList/{int(remove_list_id)}/items/{int(remove_item_id)}"
+            f"{BASE_URL}/groceryItem/{int(remove_item_id)}"
         )
         if r.status_code == 200:
             st.success(f"Item {int(remove_item_id)} removed.")

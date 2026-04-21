@@ -79,7 +79,7 @@ def create_grocery_list(userId):
             cursor.close()
 
 
-# Route 3: update a specific grocery list [Ashe-2; Bob-6]
+# Route 3: update a specific grocery list and optionally its items [Ashe-2; Bob-6]
 @users.route("/<int:userId>/groceryList/<int:listId>", methods=["PUT"])
 def update_grocery_list(userId, listId):
     cursor = None
@@ -93,23 +93,55 @@ def update_grocery_list(userId, listId):
         if missing:
             return jsonify({"error": f"Missing fields: {missing}"}), 400
 
-        query = '''UPDATE GroceryList
-            SET Est_total = %s, Budget = %s, Store = %s, Actual_total = %s
-            WHERE OwnerId = %s AND ListId = %s'''
-        cursor.execute(query, (
-            data['Est_total'],
-            data['Budget'],
-            data['Store'],
-            data['Actual_total'],
-            userId,
-            listId
-        ))
+        # Update the grocery list itself
+        cursor.execute(
+            '''UPDATE GroceryList
+               SET Est_total = %s, Budget = %s, Store = %s, Actual_total = %s
+               WHERE OwnerId = %s AND ListId = %s''',
+            (data['Est_total'], data['Budget'], data['Store'],
+             data['Actual_total'], userId, listId)
+        )
         get_db().commit()
 
         if cursor.rowcount == 0:
             return jsonify({"error": f"List {listId} not found for user {userId}"}), 404
 
-        return jsonify({"message": "Grocery list updated."}), 200
+        # Update items if provided
+        items = data.get('items', [])
+        updated = []
+        skipped = []
+
+        for item in items:
+            item_id = item.get('GroceryItemId')
+            if not item_id:
+                skipped.append(item)
+                continue
+
+            item_required = ['Price', 'Amount', 'WasBought']
+            item_missing = [f for f in item_required if f not in item]
+            if item_missing:
+                skipped.append(item_id)
+                continue
+
+            cursor.execute(
+                '''UPDATE GroceryItem
+                   SET Price = %s, Amount = %s, WasBought = %s
+                   WHERE GroceryItemId = %s AND GroceryListId = %s''',
+                (item['Price'], item['Amount'], item['WasBought'],
+                 item_id, listId)
+            )
+            if cursor.rowcount > 0:
+                updated.append(item_id)
+            else:
+                skipped.append(item_id)
+
+        get_db().commit()
+
+        return jsonify({
+            "message": "Grocery list updated.",
+            "items_updated": updated,
+            "items_skipped": skipped
+        }), 200
 
     except Error as e:
         current_app.logger.error(f"Database error in update_grocery_list: {e}")

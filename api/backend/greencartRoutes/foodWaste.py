@@ -17,7 +17,11 @@ def get_user_food_waste(user_id):
         before = request.args.get("before")
         after = request.args.get("after")
 
-        query = "SELECT * FROM WastedFood WHERE UserId = %s"
+        query = '''SELECT wf.*, fg.Name AS FoodName, c.Name AS Category
+            FROM WastedFood wf
+            JOIN FoodGlobal fg ON wf.FoodId = fg.FoodId
+            JOIN Category c ON fg.CategoryId = c.CategoryId
+            WHERE wf.UserId = %s'''
         params = [user_id]
 
         if before:
