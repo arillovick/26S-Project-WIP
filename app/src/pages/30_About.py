@@ -5,19 +5,38 @@ st.set_page_config(layout='wide')
 
 SideBarLinks()
 
-st.write("# About this App")
+st.write("# About GreenCart 🛒")
 
 st.markdown(
     """
-    This is a demo app for Data and Software in International Government and Politics Dialogue 2025 Project Course.  
+    Food waste is a growing crisis. In the United States alone, roughly 30-40% of the food supply is 
+    wasted every year, amounting to over 133 billion pounds, and 43% of that waste comes from households. 
+    Beyond the financial toll, food waste is one of the leading drivers of landfill methane emissions, 
+    which are 29 times more harmful than carbon dioxide.
 
-    The goal of this demo is to provide information on the tech stack 
-    being used as well as demo some of the features of the various platforms. 
+    **GreenCart** combines pantry tracking, grocery list planning, expiration monitoring, and food waste 
+    analytics to help users make smarter grocery decisions while reducing the environmental and financial 
+    impact of food waste.
 
-    Stay tuned for more information and features to come!
+    ### What GreenCart Does
+    - Track the remaining shelf life of items in your kitchen
+    - Receive reminders before food spoils
+    - Plan grocery lists with estimated budgets
+    - Monitor food waste by category
+    - Get sustainability recommendations for items that are no longer safely edible
+
+    ### Tech Stack
+    - **Frontend:** Streamlit
+    - **Backend:** Flask REST API
+    - **Database:** MySQL
+    - **Infrastructure:** Docker
+
+    ### Team
+    Abigail Rillovick, Danielle Chen, Dreshta Boghra, Nina Mayer, Alyssa Haidar
+
+    *Shop smarter, waste less.*
     """
 )
 
-# Add a button to return to home page
 if st.button("Return to Home", type="primary"):
     st.switch_page("Home.py")
