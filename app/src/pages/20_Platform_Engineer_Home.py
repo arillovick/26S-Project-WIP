@@ -11,7 +11,7 @@ SideBarLinks()
 st.title(f"Welcome Platform Engineer, {st.session_state['first_name']}! 🛠️")
 st.write('### What would you like to do today?')
 
-if st.button('Manage Food Databases',
+if st.button('Manage FoodGlobal Databases',
             type='primary',
             use_container_width=True):
     st.switch_page('pages/21_Janice_Food_Database.py')

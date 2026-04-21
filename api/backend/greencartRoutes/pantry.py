@@ -14,7 +14,7 @@ def get_pantry_items(pantryId):
 
         days = request.args.get("days", type=int)
 
-        query = '''SELECT fg.Name, pi.StorageLocation, pi.ExpirationDate
+        query = '''SELECT pi.PantryItemId, fg.Name, pi.StorageLocation, pi.ExpirationDate
                    FROM PantryItem pi
                    JOIN FoodGlobal fg ON pi.FoodId = fg.FoodId
                    WHERE pi.PantryId = %s'''

@@ -11,7 +11,7 @@ def get_budget_info(userId):
     try: 
         current_app.logger.info(f'GET /groceryList/{userId}/categorySpend')
         query = '''SELECT c.Name AS CategoryName, SUM(gi.Price * gi.Amount) AS ActualSpent,
-            AVG(gl.Budget) AS AvgBudget
+            ROUND(AVG(gl.Budget), 2) AS AvgBudget
             FROM GroceryItem gi
             JOIN GroceryList gl ON gi.GroceryListId = gl.ListId
             JOIN FoodGlobal fg ON gi.ItemId = fg.FoodId
