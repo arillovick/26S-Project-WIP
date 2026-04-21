@@ -1,6 +1,6 @@
 USE `green-cart`;
 
-insert into User (UserId, Email, FirstName, LastName, PaymentMethod, FamilySize, Notifications) values (1, 'hmcanellye0@apache.org', 'Horatius', 'McAnellye', 'Credit Card', 5, false);
+insert into User (UserId, Email, FirstName, LastName, PaymentMethod, FamilySize, Notifications) values (1, 'amcanellye0@gmail.com', 'Ashe', 'McAnellye', 'Credit Card', 5, false);
 insert into User (UserId, Email, FirstName, LastName, PaymentMethod, FamilySize, Notifications) values (2, 'nchark1@canalblog.com', 'Nanine', 'Chark', 'Debit Card', 4, false);
 insert into User (UserId, Email, FirstName, LastName, PaymentMethod, FamilySize, Notifications) values (3, 'ecoultas2@mozilla.org', 'Ediva', 'Coultas', 'Credit Card', 4, false);
 insert into User (UserId, Email, FirstName, LastName, PaymentMethod, FamilySize, Notifications) values (4, 'cchiene3@cyberchimps.com', 'Chauncey', 'Chiene', 'Credit Card', 7, false);
