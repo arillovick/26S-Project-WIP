@@ -21,7 +21,7 @@ def delete_grocery_item(itemId):
     finally:
         cursor.close()
 
-# Add a new item to a grocery list
+# Add a new item to a grocery list [Ashe-2]
 # Example: POST /groceryItem/
 @grocery_items.route("/", methods=["POST"])
 def add_grocery_item():

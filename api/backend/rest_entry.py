@@ -4,15 +4,12 @@ import os
 import logging
 
 from backend.db_connection import init_app as init_db
-from backend.simple.simple_routes import simple_routes
-from backend.ngos.ngo_routes import ngos
 from backend.greencartRoutes.grocery_items import grocery_items
 from backend.greencartRoutes.grocery_list import grocery_list
 from backend.greencartRoutes.pantry import pantry
 from backend.greencartRoutes.pantry_items import pantry_items
 from backend.greencartRoutes.users import users
 from backend.greencartRoutes.foodWaste import foodWaste
-from backend.greencartRoutes.food import food
 from backend.greencartRoutes.foodGlobal import foodGlobal
 from backend.greencartRoutes.auditLog import auditLog
 
@@ -45,15 +42,12 @@ def create_app():
     # Register the routes from each Blueprint with the app object
     # and give a url prefix to each.
     app.logger.info("create_app(): registering blueprints")
-    app.register_blueprint(simple_routes)
-    app.register_blueprint(ngos, url_prefix="/ngo")
     app.register_blueprint(pantry_items, url_prefix="/pantryItem")
     app.register_blueprint(pantry, url_prefix="/pantry")
     app.register_blueprint(users, url_prefix="/users")
     app.register_blueprint(grocery_list, url_prefix="/groceryList")
     app.register_blueprint(grocery_items, url_prefix="/groceryItem")
     app.register_blueprint(foodWaste, url_prefix="/foodWaste")
-    app.register_blueprint(food, url_prefix="/food")
     app.register_blueprint(foodGlobal, url_prefix="/foodGlobal")
     app.register_blueprint(auditLog, url_prefix="/auditLog")
 
