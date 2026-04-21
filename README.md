@@ -19,7 +19,7 @@
 |---|---|
 | Phase 3 Design Document | [Link](https://docs.google.com/document/d/1NIn8ppfP6_rEYrqyM73gP4aREB2OysxTGKp-0EbvWcY/edit?usp=sharing) |
 | GitHub Repository | [Link](https://github.com/arillovick/26S-Project-WIP) |
-| Demo Video | [Link]() |
+| Demo Video | [Link](https://youtu.be/RmgUepFQSus) |
 
 ---
 
